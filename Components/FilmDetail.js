@@ -1,14 +1,13 @@
 // Components/FilmDetail.js
 
 import React from 'react'
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Image  } from 'react-native'
-import { getFilmDetailFromApi, getImageByApi } from '../API/TMDBApi'
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Image, TouchableOpacity } from 'react-native'
+import { getFilmDetailFromApi, getImageFromApi } from '../API/TMDBApi'
 import moment from 'moment'
 import numeral from 'numeral'
 import { connect } from 'react-redux'
 
 class FilmDetail extends React.Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -17,14 +16,48 @@ class FilmDetail extends React.Component {
     }
   }
 
+  componentDidMount() {
+    console.log("componentDidMount : ")
+
+    getFilmDetailFromApi(this.props.navigation.state.params.idFilm).then(data => {
+      this.setState({
+        film: data,
+        isLoading: false
+      })
+    })
+  }
+
+  componentDidUpdate() {
+    console.log("componentDidUpdate : ")
+    console.log(this.props.favoritesFilm)
+  }
+
+  _displayFavoriteImage() {
+    var sourceImage = require('../Images/ic_favorite_border.png')
+    if (this.props.favoritesFilm.findIndex(item => item.id === this.state.film.id) !== -1) {
+      var sourceImage = require('../Images/ic_favorite.png')
+    }
+    return (
+      <Image
+        source={sourceImage}
+        style={styles.favorite_image}>
+      </Image>
+    )
+  }
+
   _displayLoading() {
     if (this.state.isLoading) {
       return (
         <View style={styles.loading_container}>
-          <ActivityIndicator size='large'/>
+          <ActivityIndicator size='large' />
         </View>
       )
     }
+  }
+
+  _toggleFavorite() {
+    const action = { type: "TOGGLE_FAVORITE", value: this.state.film }
+    this.props.dispatch(action)
   }
 
   _displayFilm() {
@@ -33,18 +66,23 @@ class FilmDetail extends React.Component {
       return (
         <ScrollView style={styles.scrollview_container}>
           <Image
-            style={ styles.image }
-            source={{url: getImageByApi(film.backdrop_path)}}
+            style={styles.image}
+            source={{uri: getImageFromApi(film.backdrop_path)}}
           />
           <Text style={styles.title_text}>{film.title}</Text>
+          <TouchableOpacity
+            style={styles.favorite_container}
+            onPress={() => this._toggleFavorite()}>
+            {this._displayFavoriteImage()}
+          </TouchableOpacity>
           <Text style={styles.description_text}>{film.overview}</Text>
-          <Text style={styles.default_text}>Sorti le {moment(film.release_date).format("DD/MM/YYYY")}</Text>
+          <Text style={styles.default_text}>Sorti le {moment(new Date(film.release_date)).format('DD/MM/YYYY')}</Text>
           <Text style={styles.default_text}>Note : {film.vote_average} / 10</Text>
           <Text style={styles.default_text}>Nombre de votes : {film.vote_count}</Text>
-          <Text style={styles.default_text}>Bugdet : {numeral(film.budget).format('0,0[.]00 $')}</Text>
-          <Text style={styles.default_text}>Genre(s) : {film.genres.map(function(genre) {
-            return genre.name;
-          }).join(' / ')}
+          <Text style={styles.default_text}>Budget : {numeral(film.budget).format('0,0[.]00 $')}</Text>
+          <Text style={styles.default_text}>Genre(s) : {film.genres.map(function(genre){
+              return genre.name;
+            }).join(" / ")}
           </Text>
           <Text style={styles.default_text}>Companie(s) : {film.production_companies.map(function(company){
               return company.name;
@@ -55,26 +93,14 @@ class FilmDetail extends React.Component {
     }
   }
 
- render() {
-   console.log("render")
-   const idFilm = this.props.navigation.state.params.idFilm
-   const film = this.state.film
+  render() {
+    console.log("render")
     return (
       <View style={styles.main_container}>
         {this._displayLoading()}
         {this._displayFilm()}
       </View>
     )
-  }
-
-  componentDidMount() {
-    console.log("componentDidMount")
-    getFilmDetailFromApi(this.props.navigation.state.params.idFilm).then(data => {
-      this.setState({
-        film: data,
-        isLoading: false
-      })
-    })
   }
 }
 
@@ -120,11 +146,20 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginRight: 5,
     marginTop: 5,
+  },
+  favorite_container: {
+    alignItems: 'center'
+  },
+  favorite_image: {
+    width: 40,
+    height: 40
   }
 })
 
 const mapStateToProps = (state) => {
-  return state
+  return {
+    favoritesFilm: state.favoritesFilm
+  }
 }
+
 export default connect(mapStateToProps)(FilmDetail)
-// export default FilmDetail

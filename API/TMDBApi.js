@@ -7,7 +7,7 @@ export function getFilmsFromApiWithSearchedText(text, page) {
     .catch((error) => console.log(error))
 }
 
-export function getImageByApi(name) {
+export function getImageFromApi(name) {
   return 'https://image.tmdb.org/t/p/w300' + name
 }
 

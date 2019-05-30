@@ -2,30 +2,43 @@
 
 import React from 'react'
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native'
-import { getImageByApi } from '../API/TMDBApi'
+import { getImageFromApi } from '../API/TMDBApi'
 
 class FilmItem extends React.Component {
+
+  _displayFavoriteImage() {
+    if (this.props.isFilmFavorite) {
+      // Si la props isFilmFavorite vaut true, on affiche le 🖤
+      return (
+        <Image
+          style={styles.favorite_image}
+          source={require('../Images/ic_favorite.png')}
+        />
+      )
+    }
+  }
+
   render() {
     const { film, displayDetailForFilm } = this.props
     return (
       <TouchableOpacity
-        onPress={() => displayDetailForFilm(film.id)}
-        style={styles.main_container}>
+        style={styles.main_container}
+        onPress={() => displayDetailForFilm(film.id)}>
         <Image
           style={styles.image}
-          source={{uri: getImageByApi(film.poster_path)}}
+          source={{uri: getImageFromApi(film.poster_path)}}
         />
         <View style={styles.content_container}>
           <View style={styles.header_container}>
+            {this._displayFavoriteImage()}
             <Text style={styles.title_text}>{film.title}</Text>
             <Text style={styles.vote_text}>{film.vote_average}</Text>
           </View>
           <View style={styles.description_container}>
             <Text style={styles.description_text} numberOfLines={6}>{film.overview}</Text>
-            {/* La propriété numberOfLines permet de couper un texte si celui-ci est trop long, il suffit de définir un nombre maximum de ligne */}
           </View>
           <View style={styles.date_container}>
-            <Text style={styles.date_text}>Sorti le {film.release_date}</Text>
+            <Text style={styles.date_text}>Sorti le 13/12/2017</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -41,8 +54,7 @@ const styles = StyleSheet.create({
   image: {
     width: 120,
     height: 180,
-    margin: 5,
-    backgroundColor: 'gray'
+    margin: 5
   },
   content_container: {
     flex: 1,
@@ -77,6 +89,11 @@ const styles = StyleSheet.create({
   date_text: {
     textAlign: 'right',
     fontSize: 14
+  },
+  favorite_image: {
+    width: 25,
+    height: 25,
+    marginRight: 5
   }
 })
 
